@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Switch, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, Alert, Switch, StyleSheet,
 } from 'react-native';
+import FormScroll, { FormInput } from '@/components/FormScroll';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { scheduleReminderAlert } from '@/lib/notifications';
@@ -75,7 +76,7 @@ export default function AddReminder() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
+    <FormScroll>
       <Text style={styles.label}>Service type</Text>
       <View style={styles.chips}>
         {serviceTypes.map((t) => (
@@ -91,8 +92,8 @@ export default function AddReminder() {
         ))}
       </View>
 
-      <Field label="Title *" placeholder="e.g. Oil change" value={title} onChange={setTitle} />
-      <Field label="Due at mileage" placeholder="e.g. 147500" value={dueMileage} onChange={setDueMileage} keyboardType="number-pad" />
+      <FormInput label="Title *" placeholder="e.g. Oil change" value={title} onChange={setTitle} />
+      <FormInput label="Due at mileage" placeholder="e.g. 147500" value={dueMileage} onChange={setDueMileage} keyboardType="number-pad" />
 
       <Text style={styles.label}>Due date (tap a preset or type YYYY-MM-DD)</Text>
       <View style={styles.chips}>
@@ -102,7 +103,7 @@ export default function AddReminder() {
           </TouchableOpacity>
         ))}
       </View>
-      <Field label="" placeholder="YYYY-MM-DD" value={dueDate} onChange={setDueDate} />
+      <FormInput label="" placeholder="YYYY-MM-DD" value={dueDate} onChange={setDueDate} />
 
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Repeat automatically 🔁</Text>
@@ -111,35 +112,15 @@ export default function AddReminder() {
 
       {isRecurring && (
         <>
-          <Field label="Repeat every X miles" placeholder="e.g. 5000" value={intervalMiles} onChange={setIntervalMiles} keyboardType="number-pad" />
-          <Field label="Repeat every X months" placeholder="e.g. 6" value={intervalMonths} onChange={setIntervalMonths} keyboardType="number-pad" />
+          <FormInput label="Repeat every X miles" placeholder="e.g. 5000" value={intervalMiles} onChange={setIntervalMiles} keyboardType="number-pad" />
+          <FormInput label="Repeat every X months" placeholder="e.g. 6" value={intervalMonths} onChange={setIntervalMonths} keyboardType="number-pad" />
         </>
       )}
 
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
         <Text style={styles.buttonText}>{busy ? 'Saving…' : 'Set Reminder'}</Text>
       </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
-function Field(props: {
-  label: string; placeholder: string; value: string; onChange: (v: string) => void;
-  keyboardType?: 'default' | 'number-pad';
-}) {
-  return (
-    <View style={{ marginBottom: spacing.md }}>
-      {props.label ? <Text style={styles.label}>{props.label}</Text> : null}
-      <TextInput
-        style={styles.input}
-        placeholder={props.placeholder}
-        placeholderTextColor={colors.textMuted}
-        value={props.value}
-        onChangeText={props.onChange}
-        keyboardType={props.keyboardType ?? 'default'}
-        autoCapitalize="none"
-      />
-    </View>
+    </FormScroll>
   );
 }
 

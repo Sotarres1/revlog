@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Switch, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, Alert, Switch, StyleSheet,
 } from 'react-native';
+import FormScroll, { FormInput } from '@/components/FormScroll';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { ServiceType } from '@/lib/types';
@@ -62,7 +63,7 @@ export default function AddLog() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
+    <FormScroll>
       <Text style={styles.label}>Service type</Text>
       <View style={styles.chips}>
         {serviceTypes.map((t) => (
@@ -78,9 +79,9 @@ export default function AddLog() {
         ))}
       </View>
 
-      <Field label="Title *" placeholder="e.g. Oil change — 5W-30 full synthetic" value={title} onChange={setTitle} />
-      <Field label="Mileage" placeholder="e.g. 142500" value={mileage} onChange={setMileage} keyboardType="number-pad" />
-      <Field label="Cost ($)" placeholder="e.g. 64.99" value={cost} onChange={setCost} keyboardType="decimal-pad" />
+      <FormInput label="Title *" placeholder="e.g. Oil change — 5W-30 full synthetic" value={title} onChange={setTitle} />
+      <FormInput label="Mileage" placeholder="e.g. 142500" value={mileage} onChange={setMileage} keyboardType="number-pad" />
+      <FormInput label="Cost ($)" placeholder="e.g. 64.99" value={cost} onChange={setCost} keyboardType="decimal-pad" />
 
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>I did it myself (DIY) 🔧</Text>
@@ -88,35 +89,15 @@ export default function AddLog() {
       </View>
 
       {!isDiy && (
-        <Field label="Shop name" placeholder="e.g. Joe's Garage" value={shopName} onChange={setShopName} />
+        <FormInput label="Shop name" placeholder="e.g. Joe's Garage" value={shopName} onChange={setShopName} />
       )}
 
-      <Field label="Notes" placeholder="Parts used, torque specs, observations…" value={notes} onChange={setNotes} multiline />
+      <FormInput label="Notes" placeholder="Parts used, torque specs, observations…" value={notes} onChange={setNotes} multiline />
 
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
         <Text style={styles.buttonText}>{busy ? 'Saving…' : 'Save Log'}</Text>
       </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
-function Field(props: {
-  label: string; placeholder: string; value: string; onChange: (v: string) => void;
-  keyboardType?: 'default' | 'number-pad' | 'decimal-pad'; multiline?: boolean;
-}) {
-  return (
-    <View style={{ marginBottom: spacing.md }}>
-      <Text style={styles.label}>{props.label}</Text>
-      <TextInput
-        style={[styles.input, props.multiline && { height: 90, textAlignVertical: 'top' }]}
-        placeholder={props.placeholder}
-        placeholderTextColor={colors.textMuted}
-        value={props.value}
-        onChangeText={props.onChange}
-        keyboardType={props.keyboardType ?? 'default'}
-        multiline={props.multiline}
-      />
-    </View>
+    </FormScroll>
   );
 }
 

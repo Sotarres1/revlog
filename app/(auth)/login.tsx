@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, type Href } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing, radius } from '@/constants/theme';
 
@@ -45,6 +45,9 @@ export default function Login() {
 
       <Link href="/(auth)/signup" style={styles.link}>
         New here? Create an account
+      </Link>
+      <Link href={'/(auth)/reset' as Href} style={styles.link}>
+        Forgot password?
       </Link>
     </View>
   );

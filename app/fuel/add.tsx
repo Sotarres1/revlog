@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Switch, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, Alert, Switch, StyleSheet,
 } from 'react-native';
+import FormScroll, { FormInput } from '@/components/FormScroll';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing, radius } from '@/constants/theme';
@@ -50,10 +51,10 @@ export default function AddFuel() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
-      <Field label="Odometer reading *" placeholder="e.g. 142850" value={mileage} onChange={setMileage} />
-      <Field label="Gallons *" placeholder="e.g. 11.42" value={gallons} onChange={setGallons} />
-      <Field label="Price per gallon ($)" placeholder="e.g. 3.89" value={pricePerGallon} onChange={setPricePerGallon} />
+    <FormScroll>
+      <FormInput keyboardType="decimal-pad" label="Odometer reading *" placeholder="e.g. 142850" value={mileage} onChange={setMileage} />
+      <FormInput keyboardType="decimal-pad" label="Gallons *" placeholder="e.g. 11.42" value={gallons} onChange={setGallons} />
+      <FormInput keyboardType="decimal-pad" label="Price per gallon ($)" placeholder="e.g. 3.89" value={pricePerGallon} onChange={setPricePerGallon} />
 
       {totalCost && (
         <Text style={styles.total}>Total: ${totalCost}</Text>
@@ -70,25 +71,7 @@ export default function AddFuel() {
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
         <Text style={styles.buttonText}>{busy ? 'Saving…' : 'Log Fill-Up'}</Text>
       </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
-function Field(props: {
-  label: string; placeholder: string; value: string; onChange: (v: string) => void;
-}) {
-  return (
-    <View style={{ marginBottom: spacing.md }}>
-      <Text style={styles.label}>{props.label}</Text>
-      <TextInput
-        style={styles.input}
-        placeholder={props.placeholder}
-        placeholderTextColor={colors.textMuted}
-        value={props.value}
-        onChangeText={props.onChange}
-        keyboardType="decimal-pad"
-      />
-    </View>
+    </FormScroll>
   );
 }
 

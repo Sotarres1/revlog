@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "revlog",
+    "platforms": ["ios", "android"],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -29,6 +30,7 @@
         "backgroundColor": "#0D0F12"
       },
       "permissions": [
+        "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -55,6 +57,12 @@
       "eas": {
         "projectId": "ce509968-1f73-4c8b-9bb8-da2685455002"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ce509968-1f73-4c8b-9bb8-da2685455002"
     }
   }
 }

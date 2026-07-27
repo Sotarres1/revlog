@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import FormScroll, { FormInput, useFormScroll } from '@/components/FormScroll';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { decodeVin } from '@/lib/vin';
 import { colors, spacing, radius } from '@/constants/theme';
 
-export default function AddVehicle() {
+function VehicleForm() {
   const router = useRouter();
+  const { ensureVisible } = useFormScroll();
+  const vinRef = useRef<TextInput>(null);
   const { editId } = useLocalSearchParams<{ editId?: string }>();
   const isEditing = !!editId;
   const [form, setForm] = useState({
@@ -115,11 +118,12 @@ export default function AddVehicle() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
+    <>
       <Stack.Screen options={{ title: isEditing ? 'Edit Vehicle' : 'Add Vehicle' }} />
       <Text style={styles.label}>VIN — decode to auto-fill everything</Text>
       <View style={styles.vinRow}>
         <TextInput
+          ref={vinRef}
           style={[styles.input, { flex: 1 }]}
           placeholder="17-character VIN"
           placeholderTextColor={colors.textMuted}
@@ -127,6 +131,7 @@ export default function AddVehicle() {
           autoCorrect={false}
           value={vin}
           onChangeText={setVin}
+          onFocus={() => ensureVisible(vinRef.current)}
         />
         <TouchableOpacity style={styles.vinButton} onPress={lookupVin} disabled={decoding}>
           <Text style={styles.vinButtonText}>{decoding ? '…' : '🔍 Decode'}</Text>
@@ -134,12 +139,12 @@ export default function AddVehicle() {
       </View>
       <Text style={styles.vinHint}>Find it on your dash (driver's side) or door jamb sticker.</Text>
 
-      <Field label="Nickname (optional)" placeholder="e.g. The Track Rat" value={form.nickname} onChange={set('nickname')} />
-      <Field label="Make *" placeholder="e.g. Mazda" value={form.make} onChange={set('make')} />
-      <Field label="Model *" placeholder="e.g. MX-5 Miata" value={form.model} onChange={set('model')} />
-      <Field label="Year *" placeholder="e.g. 1994" value={form.year} onChange={set('year')} keyboardType="number-pad" />
-      <Field label="Trim" placeholder="e.g. R Package" value={form.trim} onChange={set('trim')} />
-      <Field label="Current mileage" placeholder="e.g. 142000" value={form.mileage} onChange={set('mileage')} keyboardType="number-pad" />
+      <FormInput label="Nickname (optional)" placeholder="e.g. The Track Rat" value={form.nickname} onChange={set('nickname')} />
+      <FormInput label="Make *" placeholder="e.g. Mazda" value={form.make} onChange={set('make')} />
+      <FormInput label="Model *" placeholder="e.g. MX-5 Miata" value={form.model} onChange={set('model')} />
+      <FormInput label="Year *" placeholder="e.g. 1994" value={form.year} onChange={set('year')} keyboardType="number-pad" />
+      <FormInput label="Trim" placeholder="e.g. R Package" value={form.trim} onChange={set('trim')} />
+      <FormInput label="Current mileage" placeholder="e.g. 142000" value={form.mileage} onChange={set('mileage')} keyboardType="number-pad" />
 
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
         <Text style={styles.buttonText}>
@@ -152,26 +157,16 @@ export default function AddVehicle() {
           <Text style={styles.archiveButtonText}>Archive Vehicle</Text>
         </TouchableOpacity>
       )}
-    </ScrollView>
+    </>
   );
 }
 
-function Field(props: {
-  label: string; placeholder: string; value: string;
-  onChange: (v: string) => void; keyboardType?: 'default' | 'number-pad';
-}) {
+// FormScroll must wrap the form so VehicleForm can use its context
+export default function AddVehicle() {
   return (
-    <View style={{ marginBottom: spacing.md }}>
-      <Text style={styles.label}>{props.label}</Text>
-      <TextInput
-        style={styles.input}
-        placeholder={props.placeholder}
-        placeholderTextColor={colors.textMuted}
-        value={props.value}
-        onChangeText={props.onChange}
-        keyboardType={props.keyboardType ?? 'default'}
-      />
-    </View>
+    <FormScroll>
+      <VehicleForm />
+    </FormScroll>
   );
 }
 

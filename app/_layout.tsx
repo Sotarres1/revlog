@@ -45,6 +45,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)/signup" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)/reset" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="vehicle/add" options={{ title: 'Add Vehicle', presentation: 'modal' }} />
         <Stack.Screen name="vehicle/[id]" options={{ title: 'Vehicle' }} />
@@ -55,6 +56,7 @@ export default function RootLayout() {
         <Stack.Screen name="mods/add" options={{ title: 'Add Mod', presentation: 'modal' }} />
         <Stack.Screen name="mods/[vehicleId]" options={{ title: 'Build Sheet' }} />
         <Stack.Screen name="stats/[vehicleId]" options={{ title: 'Stats' }} />
+        <Stack.Screen name="archived" options={{ title: 'Archived Vehicles' }} />
       </Stack>
     </GestureHandlerRootView>
   );

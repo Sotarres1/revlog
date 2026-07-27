@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, Alert, StyleSheet,
 } from 'react-native';
+import FormScroll, { FormInput } from '@/components/FormScroll';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing, radius } from '@/constants/theme';
@@ -45,8 +46,8 @@ export default function AddMod() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
-      <Field label="Mod name *" placeholder="e.g. Coilovers" value={name} onChange={setName} />
+    <FormScroll>
+      <FormInput label="Mod name *" placeholder="e.g. Coilovers" value={name} onChange={setName} />
 
       <Text style={styles.label}>Category</Text>
       <View style={styles.chips}>
@@ -61,35 +62,15 @@ export default function AddMod() {
         ))}
       </View>
 
-      <Field label="Brand" placeholder="e.g. Öhlins" value={brand} onChange={setBrand} />
-      <Field label="Cost ($)" placeholder="e.g. 2200" value={cost} onChange={setCost} keyboardType="decimal-pad" />
-      <Field label="Install mileage" placeholder="e.g. 141200" value={mileage} onChange={setMileage} keyboardType="number-pad" />
-      <Field label="Notes" placeholder="Settings, part numbers, impressions…" value={notes} onChange={setNotes} multiline />
+      <FormInput label="Brand" placeholder="e.g. Öhlins" value={brand} onChange={setBrand} />
+      <FormInput label="Cost ($)" placeholder="e.g. 2200" value={cost} onChange={setCost} keyboardType="decimal-pad" />
+      <FormInput label="Install mileage" placeholder="e.g. 141200" value={mileage} onChange={setMileage} keyboardType="number-pad" />
+      <FormInput label="Notes" placeholder="Settings, part numbers, impressions…" value={notes} onChange={setNotes} multiline />
 
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
         <Text style={styles.buttonText}>{busy ? 'Saving…' : 'Add to Build Sheet'}</Text>
       </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
-function Field(props: {
-  label: string; placeholder: string; value: string; onChange: (v: string) => void;
-  keyboardType?: 'default' | 'number-pad' | 'decimal-pad'; multiline?: boolean;
-}) {
-  return (
-    <View style={{ marginBottom: spacing.md }}>
-      <Text style={styles.label}>{props.label}</Text>
-      <TextInput
-        style={[styles.input, props.multiline && { height: 90, textAlignVertical: 'top' }]}
-        placeholder={props.placeholder}
-        placeholderTextColor={colors.textMuted}
-        value={props.value}
-        onChangeText={props.onChange}
-        keyboardType={props.keyboardType ?? 'default'}
-        multiline={props.multiline}
-      />
-    </View>
+    </FormScroll>
   );
 }
 
