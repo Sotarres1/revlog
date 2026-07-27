@@ -46,7 +46,8 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)/signup" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)/reset" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* title feeds the back-button label on pushed screens */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Garage' }} />
         <Stack.Screen name="vehicle/add" options={{ title: 'Add Vehicle', presentation: 'modal' }} />
         <Stack.Screen name="vehicle/[id]" options={{ title: 'Vehicle' }} />
         <Stack.Screen name="log/add" options={{ title: 'Log Service', presentation: 'modal' }} />

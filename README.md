@@ -4,6 +4,12 @@ Vehicle maintenance tracker for car enthusiasts. Log services, track mods and fu
 
 Built with React Native + Expo + Supabase.
 
+## Support
+
+Questions, bug reports, or feature requests: **revlog.app@gmail.com**
+
+Privacy policy: [PRIVACY.md](PRIVACY.md)
+
 ## Beginner setup guide (start to finish)
 
 ### 1. Install the tools (one time)

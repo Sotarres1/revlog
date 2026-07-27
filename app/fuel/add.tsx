@@ -1,21 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, Alert, Switch, StyleSheet,
 } from 'react-native';
 import FormScroll, { FormInput } from '@/components/FormScroll';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing, radius } from '@/constants/theme';
 
 export default function AddFuel() {
   const router = useRouter();
-  const { vehicleId } = useLocalSearchParams<{ vehicleId: string }>();
+  const { vehicleId, editId } = useLocalSearchParams<{ vehicleId: string; editId?: string }>();
+  const isEditing = !!editId;
 
   const [mileage, setMileage] = useState('');
   const [gallons, setGallons] = useState('');
   const [pricePerGallon, setPricePerGallon] = useState('');
   const [isFullTank, setIsFullTank] = useState(true);
   const [busy, setBusy] = useState(false);
+
+  // Edit mode: load the existing fill-up into the form
+  useEffect(() => {
+    if (!editId) return;
+    supabase.from('fuel_logs').select('*').eq('id', editId).single().then(({ data }) => {
+      if (!data) return;
+      setMileage(String(data.mileage));
+      setGallons(String(data.gallons));
+      setPricePerGallon(data.price_per_gallon ? String(data.price_per_gallon) : '');
+      setIsFullTank(data.is_full_tank);
+    });
+  }, [editId]);
 
   const totalCost =
     gallons && pricePerGallon
@@ -28,14 +41,16 @@ export default function AddFuel() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from('fuel_logs').insert({
-      vehicle_id: vehicleId,
+    const values = {
       mileage: parseInt(mileage, 10),
       gallons: parseFloat(gallons),
       price_per_gallon: pricePerGallon ? parseFloat(pricePerGallon) : null,
       total_cost: totalCost ? parseFloat(totalCost) : null,
       is_full_tank: isFullTank,
-    });
+    };
+    const { error } = isEditing
+      ? await supabase.from('fuel_logs').update(values).eq('id', editId)
+      : await supabase.from('fuel_logs').insert({ vehicle_id: vehicleId, ...values });
 
     // Keep the vehicle's odometer up to date
     if (!error) {
@@ -52,7 +67,8 @@ export default function AddFuel() {
 
   return (
     <FormScroll>
-      <FormInput keyboardType="decimal-pad" label="Odometer reading *" placeholder="e.g. 142850" value={mileage} onChange={setMileage} />
+      <Stack.Screen options={{ title: isEditing ? 'Edit Fill-Up' : 'Log Fill-Up' }} />
+      <FormInput keyboardType="number-pad" thousands label="Odometer reading *" placeholder="e.g. 142,850" value={mileage} onChange={setMileage} />
       <FormInput keyboardType="decimal-pad" label="Gallons *" placeholder="e.g. 11.42" value={gallons} onChange={setGallons} />
       <FormInput keyboardType="decimal-pad" label="Price per gallon ($)" placeholder="e.g. 3.89" value={pricePerGallon} onChange={setPricePerGallon} />
 
@@ -69,7 +85,9 @@ export default function AddFuel() {
       </Text>
 
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
-        <Text style={styles.buttonText}>{busy ? 'Saving…' : 'Log Fill-Up'}</Text>
+        <Text style={styles.buttonText}>
+          {busy ? 'Saving…' : isEditing ? 'Save Changes' : 'Log Fill-Up'}
+        </Text>
       </TouchableOpacity>
     </FormScroll>
   );

@@ -141,15 +141,20 @@ your Mac. Fill your app with realistic data first — empty screens sell nothing
 ## Review Notes (for Apple's reviewer)
 
 ```
-RevLog requires an account to sync your vehicle data across devices.
+RevLog requires an account so vehicle data syncs across devices.
 
 Demo account for review:
-Email: [create a test account and put it here]
-Password: [test password]
+Email: [enter directly in App Store Connect — do not commit credentials here]
+Password: [enter directly in App Store Connect]
 
-The account has sample vehicles and service records so all features can be tested.
+The demo account is pre-loaded with sample vehicles, service records, mods,
+and fuel logs so all features can be tested.
 
-Account deletion is available in-app at Settings → Delete Account.
+Account deletion is available in-app: Settings → Delete Account.
+
+VIN decoding uses the free public NHTSA vPIC API (vpic.nhtsa.dot.gov).
+To test it, tap Add Vehicle and enter any valid US VIN, for example
+1HGCM82633A004352.
 ```
 
 **Important:** create a real demo account with sample data before submitting.

@@ -71,4 +71,4 @@ a revised "Last updated" date.
 
 ## Contact
 
-Questions about this policy or your data: **sserratos589@gmail.com**
+Questions about this policy or your data: **revlog.app@gmail.com**

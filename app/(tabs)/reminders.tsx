@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 import { useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { scheduleReminderAlert, cancelReminderAlert } from '@/lib/notifications';
+import { formatDate } from '@/lib/date';
 import { colors, spacing, radius } from '@/constants/theme';
 
 type ReminderRow = {
@@ -67,10 +68,12 @@ export default function Reminders() {
 
   function dueStatus(r: ReminderRow): { text: string; overdue: boolean } {
     const today = new Date().toISOString().slice(0, 10);
-    if (r.due_date && r.due_date <= today) return { text: `Was due ${r.due_date}`, overdue: true };
+    if (r.due_date && r.due_date <= today) {
+      return { text: `Was due ${formatDate(r.due_date)}`, overdue: true };
+    }
     if (r.due_mileage && r.vehicles.current_mileage >= r.due_mileage)
       return { text: `Due at ${r.due_mileage.toLocaleString()} mi — you're past it`, overdue: true };
-    if (r.due_date) return { text: `Due ${r.due_date}`, overdue: false };
+    if (r.due_date) return { text: `Due ${formatDate(r.due_date)}`, overdue: false };
     if (r.due_mileage) return { text: `Due at ${r.due_mileage.toLocaleString()} mi`, overdue: false };
     return { text: 'No due date', overdue: false };
   }

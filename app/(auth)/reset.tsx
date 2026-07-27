@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import FormScroll, { FormInput } from '@/components/FormScroll';
 import { colors, spacing, radius } from '@/constants/theme';
 
 export default function ResetPassword() {
@@ -52,7 +53,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <View style={styles.container}>
+    <FormScroll centered>
       <Text style={styles.title}>Reset password</Text>
 
       {step === 'email' ? (
@@ -60,14 +61,14 @@ export default function ResetPassword() {
           <Text style={styles.hint}>
             Enter your email and we'll send you a 6-digit reset code.
           </Text>
-          <TextInput
-            style={styles.input}
+          <FormInput
+            label=""
             placeholder="Email"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            keyboardType="email-address"
             value={email}
-            onChangeText={setEmail}
+            onChange={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
           />
           <TouchableOpacity style={styles.button} onPress={sendCode} disabled={busy}>
             <Text style={styles.buttonText}>{busy ? 'Sending…' : 'Send Code'}</Text>
@@ -78,22 +79,21 @@ export default function ResetPassword() {
           <Text style={styles.hint}>
             Enter the code from your email and choose a new password.
           </Text>
-          <TextInput
-            style={styles.input}
+          <FormInput
+            label=""
             placeholder="6-digit code"
-            placeholderTextColor={colors.textMuted}
+            value={code}
+            onChange={setCode}
             keyboardType="number-pad"
             maxLength={6}
-            value={code}
-            onChangeText={setCode}
           />
-          <TextInput
-            style={styles.input}
+          <FormInput
+            label=""
             placeholder="New password (8+ characters)"
-            placeholderTextColor={colors.textMuted}
-            secureTextEntry
             value={newPassword}
-            onChangeText={setNewPassword}
+            onChange={setNewPassword}
+            secureTextEntry
+            autoCapitalize="none"
           />
           <TouchableOpacity style={styles.button} onPress={confirmReset} disabled={busy}>
             <Text style={styles.buttonText}>{busy ? 'Updating…' : 'Set New Password'}</Text>
@@ -107,7 +107,7 @@ export default function ResetPassword() {
       <Link href="/(auth)/login" style={styles.link}>
         Back to sign in
       </Link>
-    </View>
+    </FormScroll>
   );
 }
 

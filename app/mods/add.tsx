@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, Alert, StyleSheet,
 } from 'react-native';
 import FormScroll, { FormInput } from '@/components/FormScroll';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing, radius } from '@/constants/theme';
 
@@ -14,7 +14,8 @@ const CATEGORIES = [
 
 export default function AddMod() {
   const router = useRouter();
-  const { vehicleId } = useLocalSearchParams<{ vehicleId: string }>();
+  const { vehicleId, editId } = useLocalSearchParams<{ vehicleId: string; editId?: string }>();
+  const isEditing = !!editId;
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState<string | null>(null);
@@ -24,22 +25,41 @@ export default function AddMod() {
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
 
+  // Edit mode: load the existing mod into the form
+  useEffect(() => {
+    if (!editId) return;
+    supabase.from('mods').select('*').eq('id', editId).single().then(({ data }) => {
+      if (!data) return;
+      setName(data.name);
+      setCategory(data.category);
+      setBrand(data.brand ?? '');
+      setCost(data.cost ? String(data.cost) : '');
+      setMileage(data.mileage ? String(data.mileage) : '');
+      setNotes(data.notes ?? '');
+    });
+  }, [editId]);
+
   async function save() {
     if (!name) {
       Alert.alert('Missing info', 'Give the mod a name.');
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from('mods').insert({
-      vehicle_id: vehicleId,
+    const values = {
       name,
       category,
       brand: brand || null,
       cost: cost ? parseFloat(cost) : null,
       mileage: mileage ? parseInt(mileage, 10) : null,
-      installed_at: new Date().toISOString().slice(0, 10),
       notes: notes || null,
-    });
+    };
+    const { error } = isEditing
+      ? await supabase.from('mods').update(values).eq('id', editId)
+      : await supabase.from('mods').insert({
+          vehicle_id: vehicleId,
+          installed_at: new Date().toISOString().slice(0, 10),
+          ...values,
+        });
     setBusy(false);
     if (error) Alert.alert('Error', error.message);
     else router.back();
@@ -47,6 +67,7 @@ export default function AddMod() {
 
   return (
     <FormScroll>
+      <Stack.Screen options={{ title: isEditing ? 'Edit Mod' : 'Add Mod' }} />
       <FormInput label="Mod name *" placeholder="e.g. Coilovers" value={name} onChange={setName} />
 
       <Text style={styles.label}>Category</Text>
@@ -64,11 +85,13 @@ export default function AddMod() {
 
       <FormInput label="Brand" placeholder="e.g. Öhlins" value={brand} onChange={setBrand} />
       <FormInput label="Cost ($)" placeholder="e.g. 2200" value={cost} onChange={setCost} keyboardType="decimal-pad" />
-      <FormInput label="Install mileage" placeholder="e.g. 141200" value={mileage} onChange={setMileage} keyboardType="number-pad" />
+      <FormInput label="Install mileage" placeholder="e.g. 141,200" value={mileage} onChange={setMileage} keyboardType="number-pad" thousands />
       <FormInput label="Notes" placeholder="Settings, part numbers, impressions…" value={notes} onChange={setNotes} multiline />
 
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
-        <Text style={styles.buttonText}>{busy ? 'Saving…' : 'Add to Build Sheet'}</Text>
+        <Text style={styles.buttonText}>
+          {busy ? 'Saving…' : isEditing ? 'Save Changes' : 'Add to Build Sheet'}
+        </Text>
       </TouchableOpacity>
     </FormScroll>
   );

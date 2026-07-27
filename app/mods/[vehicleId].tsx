@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Alert, StyleSheet } from 'react
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Mod } from '@/lib/types';
+import { formatDate } from '@/lib/date';
 import { colors, spacing, radius } from '@/constants/theme';
 
 export default function BuildSheet() {
@@ -51,6 +52,10 @@ export default function BuildSheet() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
+            onPress={() => router.push({
+              pathname: '/mods/add',
+              params: { vehicleId, editId: item.id },
+            })}
             onLongPress={() => deleteMod(item.id, item.name)}
             delayLongPress={500}
           >
@@ -60,7 +65,7 @@ export default function BuildSheet() {
               </Text>
               <Text style={styles.cardSub}>
                 {item.category ?? 'Uncategorized'}
-                {item.installed_at ? ` · ${item.installed_at}` : ''}
+                {item.installed_at ? ` · ${formatDate(item.installed_at)}` : ''}
                 {item.mileage ? ` · ${item.mileage.toLocaleString()} mi` : ''}
               </Text>
               {item.notes ? <Text style={styles.cardNotes}>{item.notes}</Text> : null}

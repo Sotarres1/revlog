@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Alert, StyleSheet } from 'react
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { FuelLog } from '@/lib/types';
+import { formatDate } from '@/lib/date';
 import { colors, spacing, radius } from '@/constants/theme';
 
 // MPG for a full-tank fill = miles since the previous full tank ÷ gallons added now
@@ -74,6 +75,10 @@ export default function FuelHistory() {
           return (
             <TouchableOpacity
               style={styles.card}
+              onPress={() => router.push({
+                pathname: '/fuel/add',
+                params: { vehicleId, editId: item.id },
+              })}
               onLongPress={() => deleteLog(item.id)}
               delayLongPress={500}
             >
@@ -83,7 +88,7 @@ export default function FuelHistory() {
                   {!item.is_full_tank ? ' · partial' : ''}
                 </Text>
                 <Text style={styles.cardSub}>
-                  {item.logged_at} · {item.mileage.toLocaleString()} mi
+                  {formatDate(item.logged_at)} · {item.mileage.toLocaleString()} mi
                   {item.total_cost ? ` · $${Number(item.total_cost).toFixed(2)}` : ''}
                 </Text>
               </View>

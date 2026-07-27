@@ -6,7 +6,14 @@ import { colors, spacing, radius } from '@/constants/theme';
 
 export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const router = useRouter();
-  const displayName = vehicle.nickname || `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+  const carName = [vehicle.year, vehicle.make, vehicle.model]
+    .filter(Boolean).join(' ').replace(/\s+/g, ' ');
+  const fullName = [carName, vehicle.trim].filter(Boolean).join(' ');
+
+  // Nickname (if set) goes on top; otherwise the car name does.
+  // The smaller line underneath carries the trim.
+  const displayName = vehicle.nickname || carName;
+  const subtitle = vehicle.nickname ? fullName : (vehicle.trim ?? '');
 
   return (
     <TouchableOpacity
@@ -22,10 +29,7 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
       )}
       <View style={styles.info}>
         <Text style={styles.name}>{displayName}</Text>
-        <Text style={styles.sub}>
-          {vehicle.year} {vehicle.make} {vehicle.model}
-          {vehicle.trim ? ` ${vehicle.trim}` : ''}
-        </Text>
+        {!!subtitle && <Text style={styles.sub}>{subtitle}</Text>}
         <Text style={styles.mileage}>{vehicle.current_mileage.toLocaleString()} mi</Text>
       </View>
     </TouchableOpacity>

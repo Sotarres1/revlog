@@ -34,7 +34,7 @@ export async function decodeVin(vin: string): Promise<VinResult> {
   add('Fuel', r.FuelTypePrimary);
   add('Transmission', [r.TransmissionSpeeds ? `${r.TransmissionSpeeds}-speed` : '', r.TransmissionStyle].filter(Boolean).join(' '));
   add('Drive', r.DriveType);
-  add('Body', [r.BodyClass, r.Doors ? `${r.Doors}-door` : ''].filter(Boolean).join(', '));
+  add('Body', [tidyBodyClass(r.BodyClass), r.Doors ? `${r.Doors}-door` : ''].filter(Boolean).join(', '));
   add('Built in', [r.PlantCity, r.PlantCountry].filter(Boolean).join(', '));
 
   return {
@@ -45,6 +45,14 @@ export async function decodeVin(vin: string): Promise<VinResult> {
     specs,
     error: hasError ? (r.ErrorText ?? 'Could not decode this VIN') : null,
   };
+}
+
+// NHTSA returns things like "Sport Utility Vehicle [SUV]/Multipurpose Vehicle [MPV]".
+// Strip the bracketed codes and keep only the first classification.
+function tidyBodyClass(value?: string): string {
+  if (!value) return '';
+  const cleaned = value.replace(/\s*\[[^\]]*\]/g, '').split('/')[0].trim();
+  return cleaned === 'Sport Utility Vehicle' ? 'SUV' : cleaned;
 }
 
 function titleCase(s: string): string {

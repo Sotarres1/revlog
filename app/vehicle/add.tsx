@@ -144,7 +144,7 @@ function VehicleForm() {
       <FormInput label="Model *" placeholder="e.g. MX-5 Miata" value={form.model} onChange={set('model')} />
       <FormInput label="Year *" placeholder="e.g. 1994" value={form.year} onChange={set('year')} keyboardType="number-pad" />
       <FormInput label="Trim" placeholder="e.g. R Package" value={form.trim} onChange={set('trim')} />
-      <FormInput label="Current mileage" placeholder="e.g. 142000" value={form.mileage} onChange={set('mileage')} keyboardType="number-pad" />
+      <FormInput label="Current mileage" placeholder="e.g. 142,000" value={form.mileage} onChange={set('mileage')} keyboardType="number-pad" thousands />
 
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
         <Text style={styles.buttonText}>

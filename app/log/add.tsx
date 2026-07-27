@@ -3,17 +3,19 @@ import {
   View, Text, TextInput, TouchableOpacity, Alert, Switch, StyleSheet,
 } from 'react-native';
 import FormScroll, { FormInput } from '@/components/FormScroll';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { ServiceType } from '@/lib/types';
 import { colors, spacing, radius } from '@/constants/theme';
 
 export default function AddLog() {
   const router = useRouter();
-  const { vehicleId } = useLocalSearchParams<{ vehicleId: string }>();
+  const { vehicleId, editId } = useLocalSearchParams<{ vehicleId: string; editId?: string }>();
+  const isEditing = !!editId;
 
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [selectedType, setSelectedType] = useState<ServiceType | null>(null);
+  const [pendingTypeId, setPendingTypeId] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [mileage, setMileage] = useState('');
   const [cost, setCost] = useState('');
@@ -27,9 +29,32 @@ export default function AddLog() {
       .then(({ data }) => setServiceTypes(data ?? []));
   }, []);
 
+  // Edit mode: load the existing log into the form
+  useEffect(() => {
+    if (!editId) return;
+    supabase.from('maintenance_logs').select('*').eq('id', editId).single().then(({ data }) => {
+      if (!data) return;
+      setTitle(data.title);
+      setMileage(data.mileage ? String(data.mileage) : '');
+      setCost(data.cost ? String(data.cost) : '');
+      setShopName(data.shop_name ?? '');
+      setNotes(data.notes ?? '');
+      setIsDiy(data.is_diy);
+      setPendingTypeId(data.service_type_id);
+    });
+  }, [editId]);
+
+  // Service types load asynchronously, so match the saved one once they arrive
+  useEffect(() => {
+    if (!pendingTypeId || !serviceTypes.length) return;
+    const match = serviceTypes.find((t) => t.id === pendingTypeId);
+    if (match) setSelectedType(match);
+  }, [pendingTypeId, serviceTypes]);
+
+  // Replaces the title unless you've typed a custom one
   function pickType(t: ServiceType) {
+    if (!title || title === selectedType?.name) setTitle(t.name);
     setSelectedType(t);
-    if (!title) setTitle(t.name);
   }
 
   async function save() {
@@ -38,8 +63,7 @@ export default function AddLog() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from('maintenance_logs').insert({
-      vehicle_id: vehicleId,
+    const values = {
       service_type_id: selectedType?.id ?? null,
       title,
       mileage: mileage ? parseInt(mileage, 10) : null,
@@ -47,7 +71,10 @@ export default function AddLog() {
       shop_name: isDiy ? null : shopName || null,
       notes: notes || null,
       is_diy: isDiy,
-    });
+    };
+    const { error } = isEditing
+      ? await supabase.from('maintenance_logs').update(values).eq('id', editId)
+      : await supabase.from('maintenance_logs').insert({ vehicle_id: vehicleId, ...values });
 
     // Keep the vehicle's odometer up to date
     if (!error && mileage) {
@@ -64,6 +91,7 @@ export default function AddLog() {
 
   return (
     <FormScroll>
+      <Stack.Screen options={{ title: isEditing ? 'Edit Service' : 'Log Service' }} />
       <Text style={styles.label}>Service type</Text>
       <View style={styles.chips}>
         {serviceTypes.map((t) => (
@@ -80,7 +108,7 @@ export default function AddLog() {
       </View>
 
       <FormInput label="Title *" placeholder="e.g. Oil change — 5W-30 full synthetic" value={title} onChange={setTitle} />
-      <FormInput label="Mileage" placeholder="e.g. 142500" value={mileage} onChange={setMileage} keyboardType="number-pad" />
+      <FormInput label="Mileage" placeholder="e.g. 142,500" value={mileage} onChange={setMileage} keyboardType="number-pad" thousands />
       <FormInput label="Cost ($)" placeholder="e.g. 64.99" value={cost} onChange={setCost} keyboardType="decimal-pad" />
 
       <View style={styles.switchRow}>
@@ -89,13 +117,15 @@ export default function AddLog() {
       </View>
 
       {!isDiy && (
-        <FormInput label="Shop name" placeholder="e.g. Joe's Garage" value={shopName} onChange={setShopName} />
+        <FormInput label="Shop name" placeholder="e.g. Nathan's Garage" value={shopName} onChange={setShopName} />
       )}
 
       <FormInput label="Notes" placeholder="Parts used, torque specs, observations…" value={notes} onChange={setNotes} multiline />
 
       <TouchableOpacity style={styles.button} onPress={save} disabled={busy}>
-        <Text style={styles.buttonText}>{busy ? 'Saving…' : 'Save Log'}</Text>
+        <Text style={styles.buttonText}>
+          {busy ? 'Saving…' : isEditing ? 'Save Changes' : 'Save Log'}
+        </Text>
       </TouchableOpacity>
     </FormScroll>
   );

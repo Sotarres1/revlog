@@ -7,13 +7,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { scheduleReminderAlert } from '@/lib/notifications';
 import { ServiceType } from '@/lib/types';
+import { monthsFromNow, parseDate } from '@/lib/date';
 import { colors, spacing, radius } from '@/constants/theme';
-
-function addMonths(months: number): string {
-  const d = new Date();
-  d.setMonth(d.getMonth() + months);
-  return d.toISOString().slice(0, 10);
-}
 
 export default function AddReminder() {
   const router = useRouter();
@@ -27,6 +22,10 @@ export default function AddReminder() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [intervalMiles, setIntervalMiles] = useState('');
   const [intervalMonths, setIntervalMonths] = useState('');
+  const [currentMileage, setCurrentMileage] = useState<number | null>(null);
+  // Remembers what we last auto-filled, so we never overwrite your own edits
+  const [autoMileage, setAutoMileage] = useState('');
+  const [autoDate, setAutoDate] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -34,14 +33,36 @@ export default function AddReminder() {
       .then(({ data }) => setServiceTypes(data ?? []));
   }, []);
 
-  // Picking a type prefills the title and sensible intervals
+  // The car's odometer lets us suggest a due mileage
+  useEffect(() => {
+    supabase.from('vehicles').select('current_mileage').eq('id', vehicleId).single()
+      .then(({ data }) => setCurrentMileage(data?.current_mileage ?? null));
+  }, [vehicleId]);
+
+  // Picking a type prefills the title, due mileage, and intervals.
+  // Anything you typed yourself is left alone.
   function pickType(t: ServiceType) {
+    if (!title || title === selectedType?.name) setTitle(t.name);
     setSelectedType(t);
-    if (!title) setTitle(t.name);
-    if (t.default_interval_miles) setIntervalMiles(String(t.default_interval_miles));
+    setIntervalMiles(t.default_interval_miles ? String(t.default_interval_miles) : '');
+    setIntervalMonths(t.default_interval_months ? String(t.default_interval_months) : '');
+
+    // Suggest "due at" mileage = current odometer + the service's interval
+    if (t.default_interval_miles && currentMileage != null) {
+      const suggested = String(currentMileage + t.default_interval_miles);
+      if (!dueMileage || dueMileage === autoMileage) {
+        setDueMileage(suggested);
+        setAutoMileage(suggested);
+      }
+    }
+
+    // Suggest a date too, but only if you haven't set one yourself
     if (t.default_interval_months) {
-      setIntervalMonths(String(t.default_interval_months));
-      setDueDate(addMonths(t.default_interval_months));
+      const suggested = monthsFromNow(t.default_interval_months);
+      if (!dueDate || dueDate === autoDate) {
+        setDueDate(suggested);
+        setAutoDate(suggested);
+      }
     }
   }
 
@@ -51,7 +72,16 @@ export default function AddReminder() {
       return;
     }
     if (!dueMileage && !dueDate) {
-      Alert.alert('Missing info', 'Set a due date, a due mileage, or both.');
+      Alert.alert(
+        'Missing info',
+        'Set a due mileage, a due date, or both — whichever you go by.'
+      );
+      return;
+    }
+    // Convert the typed MM/DD/YYYY into the format the database stores
+    const isoDueDate = dueDate ? parseDate(dueDate) : null;
+    if (dueDate && !isoDueDate) {
+      Alert.alert('Check the date', 'Enter the due date as MM/DD/YYYY — for example 03/15/2027.');
       return;
     }
     setBusy(true);
@@ -60,7 +90,7 @@ export default function AddReminder() {
       service_type_id: selectedType?.id ?? null,
       title,
       due_mileage: dueMileage ? parseInt(dueMileage, 10) : null,
-      due_date: dueDate || null,
+      due_date: isoDueDate,
       is_recurring: isRecurring,
       interval_miles: isRecurring && intervalMiles ? parseInt(intervalMiles, 10) : null,
       interval_months: isRecurring && intervalMonths ? parseInt(intervalMonths, 10) : null,
@@ -93,17 +123,40 @@ export default function AddReminder() {
       </View>
 
       <FormInput label="Title *" placeholder="e.g. Oil change" value={title} onChange={setTitle} />
-      <FormInput label="Due at mileage" placeholder="e.g. 147500" value={dueMileage} onChange={setDueMileage} keyboardType="number-pad" />
+      <Text style={styles.hint}>
+        Set a mileage, a date, or both — RevLog alerts you on whichever comes first.
+      </Text>
 
-      <Text style={styles.label}>Due date (tap a preset or type YYYY-MM-DD)</Text>
+      <FormInput
+        label="Due at mileage"
+        placeholder={currentMileage != null ? `e.g. ${(currentMileage + 5000).toLocaleString()}` : 'e.g. 147500'}
+        value={dueMileage}
+        onChange={setDueMileage}
+        keyboardType="number-pad"
+        thousands
+      />
+
+      <Text style={styles.label}>Due date — optional</Text>
       <View style={styles.chips}>
         {[1, 3, 6, 12].map((m) => (
-          <TouchableOpacity key={m} style={styles.chip} onPress={() => setDueDate(addMonths(m))}>
+          <TouchableOpacity key={m} style={styles.chip} onPress={() => setDueDate(monthsFromNow(m))}>
             <Text style={styles.chipText}>+{m} mo</Text>
           </TouchableOpacity>
         ))}
+        <TouchableOpacity
+          style={[styles.chip, dueDate ? styles.chipClear : null]}
+          onPress={() => { setDueDate(''); setAutoDate(''); }}
+        >
+          <Text style={[styles.chipText, dueDate ? styles.chipClearText : null]}>No date</Text>
+        </TouchableOpacity>
       </View>
-      <FormInput label="" placeholder="YYYY-MM-DD" value={dueDate} onChange={setDueDate} />
+      <FormInput
+        label=""
+        placeholder="MM/DD/YYYY"
+        value={dueDate}
+        onChange={setDueDate}
+        keyboardType="number-pad"
+      />
 
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Repeat automatically 🔁</Text>
@@ -134,6 +187,9 @@ const styles = StyleSheet.create({
   },
   chipActive: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
   chipText: { color: colors.textMuted, fontSize: 13 },
+  chipClear: { borderColor: colors.warning },
+  chipClearText: { color: colors.warning, fontWeight: '600' },
+  hint: { color: colors.textMuted, fontSize: 12, marginBottom: spacing.md },
   chipTextActive: { color: colors.accent, fontWeight: '600' },
   input: {
     backgroundColor: colors.card, color: colors.text, borderRadius: radius.md,

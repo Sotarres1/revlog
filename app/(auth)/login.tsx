@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { Link, type Href } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import FormScroll, { FormInput } from '@/components/FormScroll';
 import { colors, spacing, radius } from '@/constants/theme';
 
 export default function Login() {
@@ -17,26 +18,26 @@ export default function Login() {
   }
 
   return (
-    <View style={styles.container}>
+    <FormScroll centered>
       <Text style={styles.logo}>Rev<Text style={{ color: colors.accent }}>Log</Text></Text>
       <Text style={styles.tagline}>Every mile. Every wrench. Logged.</Text>
 
-      <TextInput
-        style={styles.input}
+      <FormInput
+        label=""
         placeholder="Email"
-        placeholderTextColor={colors.textMuted}
-        autoCapitalize="none"
-        keyboardType="email-address"
         value={email}
-        onChangeText={setEmail}
+        onChange={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
       />
-      <TextInput
-        style={styles.input}
+      <FormInput
+        label=""
         placeholder="Password"
-        placeholderTextColor={colors.textMuted}
-        secureTextEntry
         value={password}
-        onChangeText={setPassword}
+        onChange={setPassword}
+        secureTextEntry
+        autoCapitalize="none"
       />
 
       <TouchableOpacity style={styles.button} onPress={signIn} disabled={busy}>
@@ -49,18 +50,13 @@ export default function Login() {
       <Link href={'/(auth)/reset' as Href} style={styles.link}>
         Forgot password?
       </Link>
-    </View>
+    </FormScroll>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', padding: spacing.lg },
   logo: { fontSize: 42, fontWeight: '800', color: colors.text, textAlign: 'center' },
   tagline: { color: colors.textMuted, textAlign: 'center', marginBottom: spacing.xl },
-  input: {
-    backgroundColor: colors.card, color: colors.text, borderRadius: radius.md,
-    padding: spacing.md, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.cardBorder,
-  },
   button: { backgroundColor: colors.accent, borderRadius: radius.md, padding: spacing.md, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   link: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.lg },

@@ -4,7 +4,7 @@ import * as Updates from 'expo-updates';
 import { supabase } from '@/lib/supabase';
 import { colors, spacing, radius } from '@/constants/theme';
 
-const SUPPORT_EMAIL = 'sserratos589@gmail.com';
+const SUPPORT_EMAIL = 'revlog.app@gmail.com';
 
 export default function Settings() {
   const router = useRouter();

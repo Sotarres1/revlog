@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase';
 import { Vehicle, MaintenanceLog } from '@/lib/types';
 import MakeLogo from '@/components/MakeLogo';
+import { formatDate } from '@/lib/date';
 import { colors, spacing, radius } from '@/constants/theme';
 
 export default function VehicleDetail() {
@@ -93,7 +94,9 @@ export default function VehicleDetail() {
   if (!vehicle) return <View style={styles.container} />;
 
   const totalSpent = logs.reduce((sum, l) => sum + (l.cost ?? 0), 0);
-  const title = vehicle.nickname || `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+  const title = vehicle.nickname
+    || [vehicle.year, vehicle.make, vehicle.model]
+      .filter(Boolean).join(' ').replace(/\s+/g, ' ');
 
   return (
     <View style={styles.container}>
@@ -157,13 +160,17 @@ export default function VehicleDetail() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.logCard}
+            onPress={() => router.push({
+              pathname: '/log/add',
+              params: { vehicleId: id, editId: item.id },
+            })}
             onLongPress={() => deleteLog(item.id, item.title)}
             delayLongPress={500}
           >
             <View style={{ flex: 1 }}>
               <Text style={styles.logTitle}>{item.title}</Text>
               <Text style={styles.logSub}>
-                {item.performed_at}
+                {formatDate(item.performed_at)}
                 {item.mileage ? ` · ${item.mileage.toLocaleString()} mi` : ''}
                 {item.is_diy ? ' · DIY 🔧' : item.shop_name ? ` · ${item.shop_name}` : ''}
               </Text>

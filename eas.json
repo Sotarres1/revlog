@@ -26,9 +26,7 @@
   },
   "submit": {
     "production": {
-      "ios": {
-        "appleId": "sserratos589@gmail.com"
-      }
+      "ios": {}
     }
   }
 }
