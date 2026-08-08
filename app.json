@@ -5,15 +5,12 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "revlog",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#0D0F12"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.spencer.revlog",
@@ -28,11 +25,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D0F12"
-      },
-      "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.RECORD_AUDIO"
-      ]
+      }
     },
     "plugins": [
       "expo-router",
@@ -46,6 +39,15 @@
         "expo-notifications",
         {
           "color": "#E63946"
+        }
+      ],
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#0D0F12"
         }
       ]
     ],

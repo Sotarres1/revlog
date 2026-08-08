@@ -1,5 +1,12 @@
 node_modules/
 .expo/
+
+# macOS junk (external drives create these)
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
 dist/
 .env
 *.log
