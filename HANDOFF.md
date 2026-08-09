@@ -241,6 +241,23 @@ Replying in Resolution Center is not enough. To actually get back in the queue:
 **You get only one edit pass before resubmitting**, so make every metadata change
 you want — app name, description, screenshots — before clicking through.
 
+**If those buttons aren't visible:** left sidebar → **App Review** (under General)
+→ **In Progress** → **View** → **Cancel Submission** at the bottom. Counter-
+intuitive, but cancelling releases the stuck submission and re-enables
+**Add for Review**. Do NOT delete the build — the binary was never the problem
+and deleting it forces an unnecessary rebuild.
+
+### Know these two statuses apart
+
+| Status | Meaning |
+|---|---|
+| **Ready for Review** | **NOT submitted.** Staged only. You still must click *Submit to App Review*. |
+| **Waiting for Review** | Actually in Apple's queue. This is the one you want. |
+
+Twice now this project has stalled because something *looked* like progress while
+the ball was still in Spencer's court. Don't stop until it says **Waiting for
+Review**.
+
 No new build is required for a demo-account or metadata rejection. The same
 binary can be resubmitted.
 
