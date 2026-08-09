@@ -1,7 +1,8 @@
 # RevLog — Project Handoff
 
-**Last updated:** 8 August 2026
+**Last updated:** 8 August 2026 (evening — after new-Mac migration)
 **Owner:** Spencer Serratos
+**Project lives at:** `~/Developer/revlog`
 
 ---
 
@@ -12,7 +13,7 @@ app before, can you help again?"* — you have **no memory** of prior sessions. 
 file is your context. Read it fully, then read `SETUP-NEW-MAC.md` before suggesting
 anything.
 
-**The three things that will waste your time if you don't know them:**
+**The four things that will waste your time if you don't know them:**
 
 1. **Expo Go does not work with this project.** Don't suggest it. Don't debug it.
    See "Hard-won lessons" below.
@@ -21,6 +22,8 @@ anything.
 3. **Spencer is not a developer by trade.** Give exact commands to paste, explain
    what errors mean rather than just fixing them, and don't assume tools are
    installed — verify.
+4. **Replying in Resolution Center does NOT put the app back in the review
+   queue.** Learned the hard way 8 Aug 2026. See "Hard-won lessons."
 
 ---
 
@@ -70,7 +73,12 @@ supabase/migrations/  001_initial_schema.sql (already applied)
 **The app works.** Runs on device via development build, all features functional,
 `expo-doctor` 20/20, typecheck clean.
 
-**App Store: awaiting re-review.**
+**Dev environment: migrated to a new MacBook 8 Aug 2026.** Node 24.19.0 / npm
+11.17.0, `expo-doctor` 20/20. Node 24 works fine despite older notes saying
+Node 22 — no downgrade needed. The old Mac was sold; nothing was lost, because
+everything except `.env` was already committed and pushed.
+
+**App Store: REJECTED — action required, not waiting.**
 
 - First submission (v1.0 build 2, SDK 54) was **rejected 6 Aug 2026** under
   Guideline 2.1 — reviewer couldn't sign in with the demo account.
@@ -80,6 +88,12 @@ supabase/migrations/  001_initial_schema.sql (already applied)
   8 Aug 2026. No new build was needed.
 - App name was changed from Apple's placeholder `RevLog (57d50c)` to
   **"RevLog: Car Maintenance Log"**.
+- **8 Aug 2026 (evening):** App Store Connect still shows *Rejected*, with the
+  banner *"Your app version was rejected and no other items submitted can be
+  accepted or approved."* That is the **Unresolved Issues** state — the reply
+  posted, but the submission is NOT back in the queue. It must be resubmitted
+  manually. See "Resubmitting after rejection" below.
+- Supabase verified awake and demo login re-tested successfully 8 Aug 2026.
 
 **⚠️ Open risk:** Supabase is still on the **free tier**, which pauses after 7 days
 without a database query. If it pauses again during review, it will be rejected for
@@ -129,22 +143,36 @@ So the minimum you need to carry across is `.env`, and even that is recoverable.
 
 ## Setting up on a new Mac
 
-Full instructions in **`SETUP-NEW-MAC.md`**. Short version:
+Full instructions in **`SETUP-NEW-MAC.md`**. This exact sequence was run on a
+bare MacBook on 8 Aug 2026 and took well under an hour:
 
 ```bash
-# 1. Install Node LTS from nodejs.org, then:
+# 1. Command line tools (gives you git + compilers). Popup → Install.
+xcode-select --install
+
+# 2. Node — use the .pkg installer from nodejs.org, NOT Homebrew.
+#    Homebrew needs a manual PATH step afterward and is the usual place
+#    people get stuck. Skip it; nothing here needs it.
+#    Quit and reopen Terminal after installing, then:
+node -v && npm -v
+
+# 3. Clone and restore credentials
+mkdir -p ~/Developer && cd ~/Developer
 git clone https://github.com/Sotarres1/revlog.git
 cd revlog
+cp /path/to/backup/.env ./.env      # or rebuild from eas.json / Supabase dashboard
 npm install
+npx expo-doctor                      # expect 20/20
 
-# 2. Recreate .env (see above), then:
-npx expo login          # account @2tuff113
-npx eas-cli build --profile development --platform ios
-# scan QR to install on phone, enable Developer Mode when prompted
-
-# 3. Then daily development is just:
+# 4. Run it
 npx expo start
 ```
+
+**You probably do NOT need a new development build.** The dev client lives on the
+*iPhone*, not the Mac — replacing the Mac doesn't remove it. Just run
+`npx expo start`, scan the QR with the Camera app, and it connects. Only rebuild
+(`npx eas-cli build --profile development --platform ios`) if the app is gone from
+the phone or you've switched phones. This saved ~15 minutes on the 8 Aug migration.
 
 ---
 
@@ -159,6 +187,21 @@ educational tool, not a dev environment for apps you ship.
 **"Sign in failed / hostname cannot be found" = paused database, not a bug.** Free
 Supabase projects pause after 7 idle days. Restore from the dashboard; data is
 intact. This caused the App Store rejection.
+
+**Replying in Resolution Center does not resubmit the app.** This cost real days.
+A reply keeps the conversation open, but the version stays in **Unresolved
+Issues** and no reviewer picks it up. The tell is the banner *"Your app version
+was rejected and no other items submitted can be accepted or approved. You can
+make edits to your app version below."* If you see that, the ball is in your
+court. See "Resubmitting after rejection" below.
+
+**Node 24 works.** Older notes in this repo specify Node 22. As of 8 Aug 2026,
+Node 24.19.0 passes `expo-doctor` 20/20 on SDK 57. Don't downgrade preemptively —
+let `expo-doctor` decide.
+
+**Skip Homebrew on a fresh Mac.** The nodejs.org `.pkg` installer sets PATH
+correctly on its own. Homebrew's post-install PATH step is an easy thing to miss
+and produces a confusing `command not found: node` afterward.
 
 **Never run `npm audit fix --force`.** The ~20 reported vulnerabilities are in build
 tooling that never ships in the app. `--force` breaks Expo's pinned versions.
@@ -184,18 +227,45 @@ try to bundle. `git config core.fileMode false` also stops a phantom
 
 ---
 
+## Resubmitting after rejection
+
+Replying in Resolution Center is not enough. To actually get back in the queue:
+
+1. App Store Connect → **Apps** → RevLog
+2. **View App Review Issues & Messages**
+3. In the **In Progress** section, click **Resolve** next to the submission
+4. Click **Edit** next to the rejected item, make any changes, then **Add for
+   Review**
+5. From the submission details page, click **Resubmit to App Review**
+
+**You get only one edit pass before resubmitting**, so make every metadata change
+you want — app name, description, screenshots — before clicking through.
+
+No new build is required for a demo-account or metadata rejection. The same
+binary can be resubmitted.
+
+---
+
 ## Open items
 
-1. **Upgrade Supabase to Pro ($25/mo).** Free-tier pausing already cost one App
+1. **Resubmit to App Review.** As of 8 Aug 2026 evening this is the blocking item
+   and it is on Spencer, not Apple. Verify the demo login first, then follow
+   "Resubmitting after rejection" above.
+2. **Upgrade Supabase to Pro ($25/mo).** Free-tier pausing already cost one App
    Store rejection and will break the app for real users after launch. Treat as a
-   launch requirement. Until then, open the app every few days to keep it warm.
-2. **Wait on App Review.** Reply was sent 8 Aug 2026. Check App Store Connect →
-   My Apps → RevLog. Status should move from Rejected to In Review.
-3. **After approval:** the live build is SDK 54. Ship a fresh SDK 57 production
+   launch requirement. Until then, keep the database warm — see below.
+3. **Keep the database awake until Pro.** The reliable options, best first:
+   - Upgrade to Pro (removes the problem entirely)
+   - A free external cron service (e.g. cron-job.org) hitting the REST endpoint
+     daily — runs in the cloud, works whether or not the Mac is on
+   - A local `cron` entry on the Mac (only fires when the Mac is awake)
+   - Opening RevLog on the iPhone every few days (manual, easy to forget — this
+     is what failed in August)
+4. **After approval:** the live build is SDK 54. Ship a fresh SDK 57 production
    build when convenient:
    `npx eas-cli build --platform ios --profile production` then
    `npx eas-cli submit --platform ios`.
-4. **`README.md` "What to build next"** lists further feature ideas. Note that
+5. **`README.md` "What to build next"** lists further feature ideas. Note that
    list is stale — most of it is already built.
 
 ---

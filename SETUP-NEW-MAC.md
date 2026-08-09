@@ -2,15 +2,16 @@
 
 Everything you need to get back to work. Run these in Terminal, in order.
 
-Project lives at: `/Volumes/X10SSD/MACBOOK AIR M4/revlog`
+Project lives at: `~/Developer/revlog`
 
 ```bash
-cd "/Volumes/X10SSD/MACBOOK AIR M4/revlog"
+cd ~/Developer/revlog
 ```
 
-> **Tip:** working off the external SSD is fine, but it's slower and macOS
-> litters it with `._*` junk files. If you have room, copy the folder to
-> `~/Developer/revlog` and work there instead. Everything below works either way.
+> **Updated 8 Aug 2026:** this migration is done. The project was cloned fresh
+> from GitHub to `~/Developer/revlog` on the new MacBook. The old external-SSD
+> path (`/Volumes/X10SSD/...`) is gone, along with the `._*` AppleDouble junk
+> files that came with it.
 
 ---
 
@@ -20,19 +21,24 @@ cd "/Volumes/X10SSD/MACBOOK AIR M4/revlog"
 # Xcode command line tools (needed by git + node builds)
 xcode-select --install
 
-# Homebrew, if you don't have it
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Node 22 LTS
-brew install node@22
+# Node — DO NOT use Homebrew. Download the LTS .pkg for Apple Silicon
+# from https://nodejs.org and run it. The installer sets PATH correctly;
+# Homebrew requires a manual PATH step that is easy to miss and produces
+# a confusing "command not found: node" afterwards.
+#
+# After installing, QUIT Terminal (Cmd+Q) and reopen it — an already-open
+# window will not see the new install.
 ```
 
 Check it worked:
 
 ```bash
-node -v    # should print v22.x
+node -v    # v22 or newer. Node 24.19.0 confirmed working 8 Aug 2026.
 npm -v
 ```
+
+Ignore npm's "new major version available" notice. Global npm installs fail
+with permission errors on a default Node setup, and you gain nothing.
 
 Optional but recommended:
 
@@ -44,12 +50,17 @@ Optional but recommended:
 
 ## 2. Reinstall dependencies
 
-The `node_modules` folder came from your old Mac. Wipe it and reinstall clean:
+If you cloned fresh from GitHub there is no `node_modules` yet — just install:
 
 ```bash
-rm -rf node_modules
 npm install
 ```
+
+(If you copied a folder from an old Mac instead, `rm -rf node_modules` first.)
+
+The install ends with ~23 vulnerability warnings. **Ignore them** — they are in
+build tooling that never ships inside the app. See the warning at the bottom of
+this file.
 
 Then verify nothing drifted out of sync with the Expo SDK:
 
@@ -85,7 +96,15 @@ npx expo start
 ```
 
 Then open the app on your phone — **via the development build, not Expo Go**
-(see the next section for why). If it hangs or behaves strangely:
+(see the next section for why). Scan the QR code with the iPhone **Camera app**.
+
+> **Try this before building anything.** The development build lives on your
+> *iPhone*, not the Mac. Replacing or wiping the Mac does not remove it. On
+> 8 Aug 2026 the new MacBook connected to the existing dev build immediately,
+> skipping the ~15 minute cloud build entirely. Only rebuild if the app is gone
+> from the phone or you switched phones.
+
+If it hangs or behaves strangely:
 
 ```bash
 npx expo start --clear
@@ -181,11 +200,29 @@ gh auth login
 
 ## Where the App Store submission left off
 
-`STORE_LISTING.md` has all the copy ready to paste. The key open item noted there:
-the app was uploaded once and Apple assigned the placeholder name
-`RevLog (57d50c)` because plain "RevLog" was taken. It needs to be renamed to
-**"RevLog: Car Maintenance Log"** in App Store Connect →
-My Apps → App Information → Name.
+`STORE_LISTING.md` has all the copy ready to paste. The app was uploaded once and
+Apple assigned the placeholder name `RevLog (57d50c)` because plain "RevLog" was
+taken; it was renamed to **"RevLog: Car Maintenance Log"**.
+
+**Status as of 8 Aug 2026: REJECTED, and it is waiting on you.**
+
+Rejected 6 Aug under Guideline 2.1 because the reviewer could not sign in — the
+Supabase database had auto-paused. The database was restored and the demo login
+re-verified, and a reply was posted in Resolution Center.
+
+**That reply did not put the app back in the queue.** If App Store Connect shows
+*"Your app version was rejected and no other items submitted can be accepted or
+approved"*, the submission is in **Unresolved Issues** and must be resubmitted by
+hand:
+
+1. App Store Connect → **Apps** → RevLog
+2. **View App Review Issues & Messages**
+3. **Resolve** next to the submission
+4. **Edit** the rejected item → **Add for Review**
+5. **Resubmit to App Review**
+
+You get **one edit pass** before resubmitting, so make all metadata changes first.
+No new build is needed — the binary was never the problem.
 
 Screenshots are in `screenshots/`.
 
