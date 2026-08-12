@@ -1,6 +1,6 @@
 # RevLog — Project Handoff
 
-**Last updated:** 8 August 2026 (evening — after new-Mac migration)
+**Last updated:** 11 August 2026 — app is LIVE on the App Store
 **Owner:** Spencer Serratos
 **Project lives at:** `~/Developer/revlog`
 
@@ -78,7 +78,19 @@ supabase/migrations/  001_initial_schema.sql (already applied)
 Node 22 — no downgrade needed. The old Mac was sold; nothing was lost, because
 everything except `.env` was already committed and pushed.
 
-**App Store: REJECTED — action required, not waiting.**
+**App Store: LIVE. 🎉 Approved and Ready for Distribution, 11 Aug 2026.**
+
+- v1.0 (SDK 54) is the build customers are downloading.
+- **v1.0.1 (SDK 57) submitted 11 Aug 2026** and awaiting review. This is the
+  first build where the shipped code matches the repo.
+- Listed as **"RevLog: Car Maintenance Log"**.
+
+**⚠️ The Supabase pause risk is now a production issue, not just a review
+issue.** A paused database no longer means a failed review — it means every real
+user opens the app and cannot sign in, silently, with no error you'd see. See
+"Open items."
+
+### History of the rejection (kept because the lesson generalises)
 
 - First submission (v1.0 build 2, SDK 54) was **rejected 6 Aug 2026** under
   Guideline 2.1 — reviewer couldn't sign in with the demo account.
@@ -195,6 +207,13 @@ was rejected and no other items submitted can be accepted or approved. You can
 make edits to your app version below."* If you see that, the ball is in your
 court. See "Resubmitting after rejection" below.
 
+**Bump `version` in `app.json` before every App Store update.** Build numbers
+auto-increment on EAS (`appVersionSource: remote`, `autoIncrement: true`), so a
+build with a stale `version` uploads happily and appears in TestFlight — but
+App Store Connect will not let you create a new version reusing a version number
+that is already live. Caught this on 11 Aug 2026 before it wasted a build cycle.
+`buildNumber` in `app.json` is ignored; leave it alone.
+
 **Node 24 works.** Older notes in this repo specify Node 22. As of 8 Aug 2026,
 Node 24.19.0 passes `expo-doctor` 20/20 on SDK 57. Don't downgrade preemptively —
 let `expo-doctor` decide.
@@ -265,25 +284,33 @@ binary can be resubmitted.
 
 ## Open items
 
-1. **Resubmit to App Review.** As of 8 Aug 2026 evening this is the blocking item
-   and it is on Spencer, not Apple. Verify the demo login first, then follow
-   "Resubmitting after rejection" above.
-2. **Upgrade Supabase to Pro ($25/mo).** Free-tier pausing already cost one App
-   Store rejection and will break the app for real users after launch. Treat as a
-   launch requirement. Until then, keep the database warm — see below.
-3. **Keep the database awake until Pro.** The reliable options, best first:
-   - Upgrade to Pro (removes the problem entirely)
-   - A free external cron service (e.g. cron-job.org) hitting the REST endpoint
-     daily — runs in the cloud, works whether or not the Mac is on
-   - A local `cron` entry on the Mac (only fires when the Mac is awake)
-   - Opening RevLog on the iPhone every few days (manual, easy to forget — this
-     is what failed in August)
-4. **After approval:** the live build is SDK 54. Ship a fresh SDK 57 production
-   build when convenient:
-   `npx eas-cli build --platform ios --profile production` then
-   `npx eas-cli submit --platform ios`.
-5. **`README.md` "What to build next"** lists further feature ideas. Note that
+1. **Upgrade Supabase to Pro ($25/mo).** Now the highest-priority item. The app is
+   live; a paused database means real users cannot sign in and you will not
+   notice. Two keep-warm jobs are running (below), but both are patches.
+2. **Await review of v1.0.1** (submitted 11 Aug 2026). Update reviews are usually
+   faster than initial ones.
+3. **Monitor revlog.app@gmail.com** — public in the App Store listing, and where
+   the first user reports will land.
+4. **`README.md` "What to build next"** lists further feature ideas. Note that
    list is stale — most of it is already built.
+
+### Keep-warm setup currently in place
+
+| Layer | What | Limitation |
+|---|---|---|
+| Primary | **cron-job.org** — daily GET to the REST endpoint, verified 200 OK returning `[]` | Depends on that account staying active |
+| Backup | **Local `cron`** on the Mac, daily 9am | Only fires when the Mac is awake |
+| Prompt | Claude scheduled task, daily | Only runs when the Claude app is open |
+
+Both cron jobs hit:
+`https://qcxkmzmyvfxlwvgmjkxk.supabase.co/rest/v1/vehicles?select=id&limit=1`
+with the anon key. A response of `[]` means the database is awake — an empty
+array is correct, because row-level security hides other users' rows from the
+anonymous key.
+
+**Note:** you cannot keep the database warm by opening RevLog on the phone if the
+only build installed is a *development* build — that requires `npx expo start`
+running on the Mac. A TestFlight or App Store build works fine.
 
 ---
 
